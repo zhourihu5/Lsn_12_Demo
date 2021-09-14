@@ -3,6 +3,8 @@
 #include <7zTypes.h>
 #include <android/log.h>
 
+//#include <exception>
+
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "7zr",__VA_ARGS__);
 
 //表示这个函数在别的地方实现
