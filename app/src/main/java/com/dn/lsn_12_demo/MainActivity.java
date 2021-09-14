@@ -3,6 +3,7 @@ package com.dn.lsn_12_demo;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.nfc.Tag;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
@@ -28,11 +29,24 @@ public class MainActivity extends AppCompatActivity {
                 requestPermissions(perms, 200);
             }
         }
-        File src = new File(Environment.getExternalStorageDirectory(), "7-Zip");
-        File out = new File(Environment.getExternalStorageDirectory(), "7-Zip.7z");
-        int result = ZipCode.exec("7zr a " + out.getAbsolutePath() + " "
-                + src.getAbsolutePath() + " -mx=9");
-        Log.e(TAG, "ZipCode.exec: "+result);
+        new AsyncTask<Void, Void, Integer>() {
+            @Override
+            protected Integer doInBackground(Void... voids) {
+                File src = new File(Environment.getExternalStorageDirectory(), "7-Zip");
+                File out = new File(Environment.getExternalStorageDirectory(), "7-Zip.7z");
+                int result = ZipCode.exec("7zr a " + out.getAbsolutePath() + " "
+                        + src.getAbsolutePath() + " -mx=9");
+                Log.e(TAG, "ZipCode.exec: "+result);
+                return result;
+            }
+
+            @Override
+            protected void onPostExecute(Integer integer) {
+                super.onPostExecute(integer);
+                Toast.makeText(MainActivity.this,"ZipCode.exec result:"+integer,Toast.LENGTH_SHORT).show();
+            }
+        }.execute();
+
     }
 
     /**
@@ -41,8 +55,21 @@ public class MainActivity extends AppCompatActivity {
      * @param view
      */
     public void load(View view) {
-        boolean result = ZipHelper.loadBinary(this, "7zr");
-        Toast.makeText(this, "加载7zr结果：" + result, Toast.LENGTH_SHORT).show();
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                boolean result = ZipHelper.loadBinary(MainActivity.this, "7zr");
+                return result;
+            }
+
+            @Override
+            protected void onPostExecute(Boolean aBoolean) {
+                super.onPostExecute(aBoolean);
+                Toast.makeText(MainActivity.this, "加载7zr结果：" + aBoolean, Toast.LENGTH_SHORT).show();
+            }
+        }.execute();
+
+
     }
 
     /**
@@ -60,10 +87,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(String msg) {
                 Log.e(TAG, "执行成功");
+                Toast.makeText(MainActivity.this,"pack 执行成功",Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onFailure(int errorno, String msg) {
+                Toast.makeText(MainActivity.this,String.format("pack 执行失败 错误码：%s,错误信息：%s",errorno,msg),Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "执行失败");
                 Log.e(TAG, "错误码："+errorno);
                 Log.e(TAG, "错误信息："+msg);
@@ -89,11 +118,17 @@ public class MainActivity extends AppCompatActivity {
                 + out.getAbsolutePath(), new ZipHelper.OnResultListener() {
             @Override
             public void onSuccess(String msg) {
+                Toast.makeText(MainActivity.this,"unpack 执行成功",Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "执行成功");
             }
 
             @Override
             public void onFailure(int errorno, String msg) {
+                Toast.makeText(MainActivity.this,
+                        String.format("unpack 执行失败 错误码：%s,错误信息：%s",errorno,msg)
+                        ,Toast.LENGTH_SHORT)
+                        .show();
+
                 Log.e(TAG, "执行失败");
                 Log.e(TAG, "错误码："+errorno);
                 Log.e(TAG, "错误信息："+msg);
